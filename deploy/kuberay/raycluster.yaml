@@ -1,0 +1,46 @@
+apiVersion: ray.io/v1
+kind: RayCluster
+metadata:
+  name: distalgo
+spec:
+  rayVersion: "2.9.0"
+  headGroupSpec:
+    serviceType: ClusterIP
+    rayStartParams:
+      dashboard-host: "0.0.0.0"
+    template:
+      metadata:
+        labels:
+          app: distalgo-head
+      spec:
+        containers:
+          - name: ray-head
+            image: rayproject/ray:2.9.0
+            ports:
+              - containerPort: 6379
+                name: gcs
+              - containerPort: 8265
+                name: dashboard
+              - containerPort: 8000
+                name: serve
+  workerGroupSpecs:
+    - groupName: cpu-workers
+      replicas: 2
+      minReplicas: 1
+      maxReplicas: 4
+      rayStartParams: {}
+      template:
+        metadata:
+          labels:
+            app: distalgo-worker
+        spec:
+          containers:
+            - name: ray-worker
+              image: rayproject/ray:2.9.0
+              resources:
+                requests:
+                  cpu: "1"
+                  memory: "2Gi"
+                limits:
+                  cpu: "2"
+                  memory: "4Gi"

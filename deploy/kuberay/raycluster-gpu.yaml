@@ -1,0 +1,39 @@
+apiVersion: ray.io/v1
+kind: RayCluster
+metadata:
+  name: distalgo-gpu
+spec:
+  rayVersion: "2.9.0"
+  headGroupSpec:
+    rayStartParams:
+      dashboard-host: "0.0.0.0"
+    template:
+      metadata:
+        labels:
+          app: distalgo-head
+      spec:
+        containers:
+          - name: ray-head
+            image: rayproject/ray:2.9.0
+            ports:
+              - containerPort: 8265
+                name: dashboard
+  workerGroupSpecs:
+    - groupName: gpu-workers
+      replicas: 1
+      minReplicas: 0
+      maxReplicas: 1
+      rayStartParams: {}
+      template:
+        metadata:
+          labels:
+            app: distalgo-gpu-worker
+        spec:
+          containers:
+            - name: ray-worker
+              image: rayproject/ray-ml:2.9.0-gpu
+              resources:
+                limits:
+                  nvidia.com/gpu: "1"
+                  cpu: "4"
+                  memory: "16Gi"

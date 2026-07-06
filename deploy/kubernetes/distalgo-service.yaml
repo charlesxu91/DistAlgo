@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: distalgo
+spec:
+  selector:
+    app: distalgo
+  ports:
+    - name: metrics
+      port: 8000
+      targetPort: 8000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: distalgo-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: distalgo
+  template:
+    metadata:
+      labels:
+        app: distalgo
+    spec:
+      containers:
+        - name: distalgo
+          image: distalgo:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
