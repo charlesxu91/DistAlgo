@@ -42,6 +42,10 @@ The `GPUProbe` helper reports this distinction:
 CUDA_VISIBLE_DEVICES=0 python3 scripts/probe_gpu.py
 ```
 
+When `CUDA_VISIBLE_DEVICES` is not set, the helper also attempts to read real
+device names from `nvidia-smi`. This keeps the local probe useful on normal CUDA
+hosts where the driver exposes devices without an explicit environment filter.
+
 Expected mode on one GPU:
 
 ```text
@@ -84,6 +88,22 @@ Collect a remote status snapshot:
 ```bash
 ssh charles@192.168.124.8 'bash -s' < scripts/remote_cluster_status.sh
 ```
+
+Run the GPU scheduling smoke test:
+
+```bash
+ssh charles@192.168.124.8 'bash -s' < scripts/remote_gpu_ray_smoke.sh
+```
+
+This script validates three separate layers:
+
+1. `nvidia-smi` sees the physical RTX 5090 on the host.
+2. A Kubernetes pod with `nvidia.com/gpu: 1` can run `nvidia-smi`.
+3. A KubeRay RayCluster with a GPU worker can run Ray tasks declared with
+   `@ray.remote(num_gpus=0.25)`.
+
+Passing this script proves GPU resource scheduling and Ray GPU assignment. It
+still does not prove that DistAlgo graph/ML kernels use CUDA internally.
 
 Expected K3s GPU signal after NVIDIA device-plugin time-slicing:
 

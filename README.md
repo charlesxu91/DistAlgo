@@ -134,6 +134,12 @@ make test
 make smoke
 ```
 
+GPU visibility smoke check:
+
+```bash
+make gpu-probe
+```
+
 Run an example job:
 
 ```bash
@@ -167,6 +173,7 @@ Manifests and deployment helpers:
 - `scripts/fix_remote_k3s_kuberay.sh`
 - `scripts/import_remote_image_to_k3s.sh`
 - `scripts/remote_cluster_status.sh`
+- `scripts/remote_gpu_ray_smoke.sh`
 
 Remote validation has been performed on a single RTX 5090 32GB host with K3s,
 NVIDIA device plugin time-slicing, KubeRay, and a RayCluster. See
@@ -176,8 +183,16 @@ NVIDIA device plugin time-slicing, KubeRay, and a RayCluster. See
 
 A single RTX 5090 validates CUDA visibility, Kubernetes GPU resource
 advertisement, Ray/KubeRay scheduling, and logical multi-worker GPU allocation.
-It does not validate true physical multi-GPU NCCL/UCX behavior. Real multi-GPU
-validation requires at least two visible CUDA devices.
+The project has a Ray actor resource seam for `num_gpus` / fractional GPU
+scheduling, plus a remote K3s smoke script:
+
+```bash
+make remote-gpu-smoke
+```
+
+This does not validate GPU algorithm kernels or true physical multi-GPU
+NCCL/UCX behavior. Real multi-GPU validation requires at least two visible CUDA
+devices.
 
 See [GPU validation](docs/gpu-validation.md).
 

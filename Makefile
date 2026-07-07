@@ -1,4 +1,4 @@
-.PHONY: test compile smoke
+.PHONY: test compile smoke gpu-probe remote-gpu-smoke
 
 test:
 	PYTHONPATH=src python3 -m unittest discover -s tests -v
@@ -12,3 +12,9 @@ smoke:
 	PYTHONPATH=src python3 -m distalgo.cli run examples/sssp_job.json --output /private/tmp/distalgo-sssp-result.json
 	PYTHONPATH=src python3 -m distalgo.cli benchmark
 	PYTHONPATH=src python3 -m distalgo.cli report
+
+gpu-probe:
+	python3 scripts/probe_gpu.py
+
+remote-gpu-smoke:
+	ssh charles@192.168.124.8 'bash -s' < scripts/remote_gpu_ray_smoke.sh

@@ -116,10 +116,13 @@ class ProjectCompletionTest(unittest.TestCase):
     def test_deployment_manifests_include_kuberay_and_prometheus(self):
         ray_cluster = Path("deploy/kuberay/raycluster.yaml").read_text(encoding="utf-8")
         prometheus = Path("deploy/observability/prometheus-config.yaml").read_text(encoding="utf-8")
+        gpu_smoke = Path("scripts/remote_gpu_ray_smoke.sh").read_text(encoding="utf-8")
 
         self.assertIn("kind: RayCluster", ray_cluster)
         self.assertIn("distalgo-head", ray_cluster)
         self.assertIn("/metrics", prometheus)
+        self.assertIn("num_gpus=0.25", gpu_smoke)
+        self.assertIn("nvidia.com/gpu: \"1\"", gpu_smoke)
 
 
 if __name__ == "__main__":

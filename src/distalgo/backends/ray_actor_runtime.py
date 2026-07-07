@@ -36,18 +36,25 @@ class RayActorRuntime:
     PartitionWorker methods without changing the public runtime API.
     """
 
-    def __init__(self, ray_module=None, checkpoint_store=None, metrics: MetricsRegistry | None = None):
+    def __init__(
+        self,
+        ray_module=None,
+        checkpoint_store=None,
+        metrics: MetricsRegistry | None = None,
+        num_gpus_per_actor: float = 0.0,
+    ):
         self.ray = ray_module or self._import_ray()
         self.local = PartitionedLocalRuntime(
             checkpoint_store=checkpoint_store or MemoryCheckpointStore(),
             metrics=metrics or MetricsRegistry(),
         )
+        self.num_gpus_per_actor = num_gpus_per_actor
         self._initialized = False
 
     def run(self, algorithm: Algorithm, data: Sequence[Any], partitions: int = 1) -> AlgorithmResult:
         self._ensure_initialized()
         graph_partitions = hash_partition_edges(data, partitions)
-        remote_worker = self.ray.remote(PartitionWorker)
+        remote_worker = self._remote_worker()
         workers = [remote_worker.remote(partition) for partition in graph_partitions]
         edge_refs = [worker.get_edges.remote() for worker in workers]
         summary_refs = [worker.summary.remote() for worker in workers]
@@ -58,6 +65,7 @@ class RayActorRuntime:
         metrics = dict(result.metrics)
         metrics["ray_actors"] = float(len(workers))
         metrics["ray_partition_edges"] = float(sum(item["edges"] for item in summaries))
+        metrics["ray_actor_gpus"] = float(self.num_gpus_per_actor)
         return AlgorithmResult(
             algorithm=result.algorithm,
             iterations=result.iterations,
@@ -65,6 +73,11 @@ class RayActorRuntime:
             output=result.output,
             metrics=metrics,
         )
+
+    def _remote_worker(self):
+        if self.num_gpus_per_actor <= 0:
+            return self.ray.remote(PartitionWorker)
+        return self.ray.remote(num_gpus=self.num_gpus_per_actor)(PartitionWorker)
 
     def _ensure_initialized(self) -> None:
         if not self._initialized:

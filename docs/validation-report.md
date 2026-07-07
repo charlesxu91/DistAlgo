@@ -69,6 +69,11 @@ The `distalgo-gpu-smoke` pod runs `nvidia-smi` through K3s with
 `nvidia.com/gpu: 1`, proving the device plugin, K3s containerd runtime, and CUDA
 container path.
 
+The repository now includes `scripts/remote_gpu_ray_smoke.sh` to extend this
+into a Ray-level GPU scheduling check. It creates a GPU RayCluster and runs
+fractional `num_gpus=0.25` Ray tasks. This is the next command to run on the
+remote host when image pulls are available.
+
 ## Remote RayCluster Execution
 
 The remote K3s cluster also ran a real KubeRay RayCluster:
@@ -88,6 +93,8 @@ jobs.
 ## Remaining External Validation
 
 - Run MinIO service integration instead of the in-memory MinIO-compatible client.
+- Run `scripts/remote_gpu_ray_smoke.sh` end-to-end and record the Ray GPU task
+  output in this report.
 - Validate RAPIDS/cuGraph/cuML kernels after adding GPU implementations.
 - Validate NCCL/UCX only on a host with multiple physical CUDA devices.
 - Run large-graph performance and stress tests.

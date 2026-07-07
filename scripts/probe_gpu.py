@@ -11,8 +11,10 @@ from distalgo.backends.gpu import GPUProbe
 
 
 def main() -> int:
-    probe = GPUProbe.from_environment(os.environ)
+    probe = GPUProbe.from_system(os.environ)
     print(f"device_count={probe.device_count}")
+    for index, name in enumerate(probe.device_names):
+        print(f"device_{index}={name}")
     print(f"multi_gpu_mode={probe.multi_gpu_mode.value}")
     print(probe.virtualization_note)
     return 0

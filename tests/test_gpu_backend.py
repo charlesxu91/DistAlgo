@@ -23,6 +23,15 @@ class GPUBackendTest(unittest.TestCase):
         self.assertEqual(report["multi_gpu_mode"], MultiGpuMode.LOGICAL_ONLY.value)
         self.assertFalse(report["true_multi_gpu_validation"])
 
+    def test_probe_can_read_real_gpu_names_from_nvidia_smi_output(self):
+        probe = GPUProbe.from_system(
+            env={},
+            command_runner=lambda command: "NVIDIA GeForce RTX 5090\nNVIDIA GeForce RTX 4090\n",
+        )
+
+        self.assertEqual(probe.device_count, 2)
+        self.assertEqual(probe.multi_gpu_mode, MultiGpuMode.PHYSICAL_MULTI_GPU)
+
 
 if __name__ == "__main__":
     unittest.main()

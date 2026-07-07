@@ -55,8 +55,11 @@ class FinalCompletionTest(unittest.TestCase):
         report = ProjectReport().render()
 
         self.assertIn("Local project completion: 100%", report)
-        self.assertIn("Remote RTX 5090 smoke validation: passed", report)
-        self.assertIn("Remote K3s/KubeRay RayCluster execution: passed", report)
+        self.assertIn("Remote RTX 5090 host/CUDA smoke validation: passed", report)
+        self.assertIn("Remote K3s GPU pod validation: passed", report)
+        self.assertIn("Remote K3s/KubeRay CPU RayCluster execution: passed", report)
+        self.assertIn("Ray actor fractional GPU resource seam: implemented and locally tested", report)
+        self.assertIn("GPU algorithm kernels", report)
         self.assertIn("External production validation remaining", report)
         self.assertIn("Multi-GPU NCCL", report)
 
