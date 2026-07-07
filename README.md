@@ -133,6 +133,8 @@ PYTHONPATH=src python3 -m distalgo.cli list-algorithms --json
 python3 -m pip install -e .
 make test
 make smoke
+make gpu-kernel-smoke
+make stress
 ```
 
 GPU visibility smoke check:
@@ -168,6 +170,7 @@ Manifests and deployment helpers:
 - `deploy/docker-compose.yaml`
 - `deploy/kuberay/raycluster.yaml`
 - `deploy/kuberay/raycluster-gpu.yaml`
+- `deploy/kubernetes/minio.yaml`
 - `deploy/volcano-vgpu/`
 - `deploy/kubernetes/distalgo-service.yaml`
 - `deploy/observability/prometheus-config.yaml`
@@ -176,10 +179,11 @@ Manifests and deployment helpers:
 - `scripts/import_remote_image_to_k3s.sh`
 - `scripts/remote_cluster_status.sh`
 - `scripts/remote_gpu_ray_smoke.sh`
+- `scripts/remote_minio_k3s_smoke.sh`
 
 Remote validation has been performed on a single RTX 5090 32GB host with K3s,
-NVIDIA device plugin time-slicing, KubeRay, and a RayCluster. See
-[validation report](docs/validation-report.md).
+NVIDIA device plugin time-slicing, KubeRay, RayCluster, and K3s-hosted MinIO.
+See [validation report](docs/validation-report.md).
 
 ## GPU Boundary
 
@@ -192,9 +196,24 @@ scheduling, plus a remote K3s smoke script:
 make remote-gpu-smoke
 ```
 
-This does not validate GPU algorithm kernels or true physical multi-GPU
-NCCL/UCX behavior. Real multi-GPU validation requires at least two visible CUDA
-devices.
+K3s MinIO checkpoint service smoke:
+
+```bash
+make remote-minio-k3s-smoke
+```
+
+The project also includes optional CuPy-backed kernels for KMeans, PageRank,
+and BFS frontier primitives:
+
+```bash
+make gpu-kernel-smoke
+```
+
+On machines without CuPy/CUDA runtime libraries this smoke test falls back to
+the deterministic CPU implementation while preserving the same algorithm
+contract. True physical multi-GPU NCCL/UCX behavior still requires at least two
+visible CUDA devices and is intentionally outside the single-5090 validation
+scope.
 
 See [GPU validation](docs/gpu-validation.md).
 

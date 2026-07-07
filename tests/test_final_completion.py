@@ -59,6 +59,7 @@ class FinalCompletionTest(unittest.TestCase):
         self.assertIn("Remote K3s GPU pod validation: passed", report)
         self.assertIn("Remote K3s/KubeRay CPU RayCluster execution: passed", report)
         self.assertIn("Remote K3s/KubeRay fractional GPU scheduling: passed", report)
+        self.assertIn("Remote K3s MinIO checkpoint service validation: passed", report)
         self.assertIn("Optional Volcano vGPU + HAMi-core", report)
         self.assertIn("GPU algorithm kernels", report)
         self.assertIn("External production validation remaining", report)

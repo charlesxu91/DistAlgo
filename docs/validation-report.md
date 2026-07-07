@@ -15,7 +15,7 @@ docker compose -f deploy/docker-compose.yaml config
 Latest local test result:
 
 ```text
-47 tests passed, 1 socket-level HTTP smoke test skipped when sandbox denied TCP bind.
+53 tests passed, 2 socket-level HTTP smoke tests skipped when sandbox denied TCP bind.
 ```
 
 The socket-level HTTP smoke test is environment-specific. The HTTP app route
@@ -95,6 +95,31 @@ This proves that Kubernetes GPU resources, KubeRay worker placement, Ray
 cluster membership, and Ray fractional GPU assignment work on the remote RTX
 5090 test host.
 
+## Remote K3s MinIO Checkpoint Service
+
+The target K3s cluster runs a MinIO service for object checkpoint storage:
+
+```text
+Namespace: distalgo-system
+Deployment: distalgo-minio
+Service: distalgo-minio:9000
+Smoke job: distalgo-minio-smoke
+```
+
+The smoke job runs inside the target K3s cluster with `minio/mc`, creates the
+`distalgo-checkpoints` bucket, writes a PageRank checkpoint object, reads it
+back, and verifies the payload.
+
+Validated output includes:
+
+```text
+DISTALGO_MINIO_K3S_SMOKE=passed
+```
+
+The repository includes `deploy/kubernetes/minio.yaml` for the deployable
+manifest and `scripts/remote_minio_k3s_smoke.sh` for repeatable target-machine
+validation.
+
 ## Remote RayCluster Execution
 
 The remote K3s cluster also ran a real KubeRay RayCluster:
@@ -111,11 +136,23 @@ remote tasks. Algorithm-level remote execution is represented by the Ray actor
 adapter tests and remains the next production-hardening step for large graph
 jobs.
 
+## Completed After Remote KubeRay Validation
+
+- MinIO/S3-compatible service integration was implemented with a dependency-free
+  SigV4 client, `scripts/minio_service_smoke.py`, K3s manifest, and remote K3s
+  smoke validation.
+- Optional GPU kernels were implemented for KMeans, PageRank, and BFS frontier
+  primitives. The kernels use CuPy when available and otherwise fall back to the
+  deterministic CPU backend.
+- Deterministic stress benchmarking was implemented in
+  `scripts/stress_benchmark.py` for PageRank, SSSP, and KMeans.
+- Volcano vGPU + HAMi-core preflight and smoke scripts were added:
+  `scripts/remote_volcano_vgpu_preflight.sh` and
+  `scripts/remote_volcano_vgpu_smoke.sh`. The smoke script validates
+  `volcano.sh/vgpu-*` resources, a single vGPU Pod, a gang-scheduled
+  VolcanoJob, and an intentionally oversized Queue case when the advanced GPU
+  plugin profile is installed.
+
 ## Remaining External Validation
 
-- Run MinIO service integration instead of the in-memory MinIO-compatible client.
-- Install and validate the optional Volcano vGPU + HAMi-core profile if queue,
-  gang scheduling, and per-container vGPU memory/core limits become required.
-- Validate RAPIDS/cuGraph/cuML kernels after adding GPU implementations.
 - Validate NCCL/UCX only on a host with multiple physical CUDA devices.
-- Run large-graph performance and stress tests.

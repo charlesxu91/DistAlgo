@@ -4,18 +4,20 @@ import math
 from typing import List, Sequence, Tuple
 
 from distalgo.algorithms.base import Algorithm
+from distalgo.backends.accelerated import kmeans_kernel
 from distalgo.core.models import AlgorithmResult, AlgorithmSpec, ExecutionModel
 
 Point = Tuple[float, ...]
 
 
 class KMeans(Algorithm):
-    def __init__(self, k: int, max_iterations: int = 100, tolerance: float = 1e-4):
+    def __init__(self, k: int, max_iterations: int = 100, tolerance: float = 1e-4, use_gpu: bool = False):
         if k <= 0:
             raise ValueError("k must be positive")
         self.k = k
         self.max_iterations = max_iterations
         self.tolerance = tolerance
+        self.use_gpu = use_gpu
         self.spec = AlgorithmSpec(
             name="kmeans",
             family="ml.clustering",
@@ -28,6 +30,21 @@ class KMeans(Algorithm):
         points = [tuple(float(value) for value in point) for point in data]
         if len(points) < self.k:
             raise ValueError("k cannot exceed number of points")
+
+        if self.use_gpu:
+            kernel = kmeans_kernel(points, self.k, self.max_iterations, self.tolerance, prefer_gpu=True)
+            return AlgorithmResult(
+                algorithm=self.spec.name,
+                iterations=int(kernel.metrics["iterations"]),
+                converged=bool(kernel.metrics["converged"]),
+                output=kernel.output,
+                metrics={
+                    "clusters": float(self.k),
+                    "points": float(len(points)),
+                    "accelerated_backend": 1.0,
+                    "gpu_device": 1.0 if kernel.device == "gpu" else 0.0,
+                },
+            )
 
         centers = list(points[: self.k])
         assignments: List[int] = [0 for _ in points]

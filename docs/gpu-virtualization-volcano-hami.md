@@ -130,9 +130,14 @@ the target cluster:
 
 - Validated on 2026-07-07: K3s + NVIDIA device plugin time-slicing + KubeRay
   + Ray fractional GPU task scheduling on the remote RTX 5090 host.
-- Not yet validated: Volcano vGPU + HAMi-core on the remote RTX 5090 host.
-- Repository support: example manifests are available in
-  `deploy/volcano-vgpu/` as a future validation harness.
+- Implemented in repository: Volcano vGPU example manifests plus
+  `scripts/remote_volcano_vgpu_preflight.sh` and
+  `scripts/remote_volcano_vgpu_smoke.sh`.
+- Validation rule: run the smoke script only after the cluster intentionally
+  switches to a Volcano vGPU/HAMi-core GPU plugin profile and the node exposes
+  `volcano.sh/vgpu-number`, `volcano.sh/vgpu-memory`, and
+  `volcano.sh/vgpu-cores`. The preflight script keeps this check
+  non-destructive for the current NVIDIA device-plugin time-slicing profile.
 
 ## Sources
 
