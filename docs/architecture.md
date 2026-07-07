@@ -58,6 +58,7 @@ flowchart TB
     Ray --> KubeRay["KubeRay Operator"]
     KubeRay --> K8s["Kubernetes / K3s"]
     K8s --> GPU["NVIDIA Device Plugin\nlogical GPU slots"]
+    K8s --> Volcano["Optional Volcano vGPU\nQueue + Gang + HAMi-core"]
     K8s --> ObjectStore["MinIO / S3 artifacts"]
     K8s --> Observability["Prometheus / Grafana"]
 ```
@@ -185,7 +186,8 @@ Kubernetes/K3s manages:
 - Pods, services, namespaces, lifecycle, and node placement.
 - CPU, memory, GPU, and storage resource boundaries.
 - Image policy, service discovery, logs, secrets, and network policy.
-- Optional queueing through Kueue or Volcano.
+- Optional queueing and gang scheduling through Kueue or Volcano.
+- Optional vGPU memory/core limits through the Volcano vGPU + HAMi-core profile.
 
 Ray/KubeRay manages:
 
@@ -193,6 +195,14 @@ Ray/KubeRay manages:
 - Ray object references and worker lifecycle.
 - Resource-aware scheduling, including CPU/GPU resource declarations.
 - Ray dashboard and cluster membership.
+
+Volcano/HAMi manages, when enabled:
+
+- `schedulerName: volcano` placement for Pods and VolcanoJobs.
+- PodGroup/Gang Scheduling through `minAvailable`.
+- Queue-level resource `capability`.
+- vGPU resource names such as `volcano.sh/vgpu-memory`.
+- In-container GPU memory/core limits through HAMi-core.
 
 DistAlgo manages:
 

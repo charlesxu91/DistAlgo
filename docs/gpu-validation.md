@@ -115,6 +115,24 @@ GPU_ALLOCATABLE   GPU_CAPACITY
 This is four logical Kubernetes GPU slots backed by one physical RTX 5090. It is
 valid for scheduling tests, but it is not evidence of four physical devices.
 
+## Optional Volcano vGPU + HAMi-core Path
+
+When DistAlgo needs queue-level GPU quotas, gang scheduling, and per-container
+GPU memory/core limits, use the optional Volcano vGPU profile instead of the
+default NVIDIA time-slicing profile.
+
+Key difference:
+
+```text
+default path:  nvidia.com/gpu
+Volcano path: volcano.sh/vgpu-number, volcano.sh/vgpu-memory, volcano.sh/vgpu-cores
+```
+
+The Volcano path also requires `schedulerName: volcano` and a running Volcano
+scheduler with the `deviceshare` plugin enabled. See
+[Volcano vGPU + HAMi GPU virtualization](gpu-virtualization-volcano-hami.md) and
+the sample manifests in `deploy/volcano-vgpu/`.
+
 ## Recommended Roadmap
 
 Phase 1:

@@ -117,12 +117,20 @@ class ProjectCompletionTest(unittest.TestCase):
         ray_cluster = Path("deploy/kuberay/raycluster.yaml").read_text(encoding="utf-8")
         prometheus = Path("deploy/observability/prometheus-config.yaml").read_text(encoding="utf-8")
         gpu_smoke = Path("scripts/remote_gpu_ray_smoke.sh").read_text(encoding="utf-8")
+        volcano_queue = Path("deploy/volcano-vgpu/queue.yaml").read_text(encoding="utf-8")
+        volcano_job = Path("deploy/volcano-vgpu/vcjob-vgpu-gang.yaml").read_text(encoding="utf-8")
+        volcano_doc = Path("docs/gpu-virtualization-volcano-hami.md").read_text(encoding="utf-8")
 
         self.assertIn("kind: RayCluster", ray_cluster)
         self.assertIn("distalgo-head", ray_cluster)
         self.assertIn("/metrics", prometheus)
         self.assertIn("num_gpus=0.25", gpu_smoke)
         self.assertIn("nvidia.com/gpu: \"1\"", gpu_smoke)
+        self.assertIn("kind: Queue", volcano_queue)
+        self.assertIn("volcano.sh/vgpu-memory", volcano_queue)
+        self.assertIn("schedulerName: volcano", volcano_job)
+        self.assertIn("minAvailable: 2", volcano_job)
+        self.assertIn("HAMi-core", volcano_doc)
 
 
 if __name__ == "__main__":

@@ -2,6 +2,8 @@
 set -euo pipefail
 
 export KUBECONFIG="${KUBECONFIG:-$HOME/.kube/config}"
+RAY_IMAGE="${RAY_IMAGE:-rayproject/ray:2.9.0}"
+RAY_GPU_WORKER_IMAGE="${RAY_GPU_WORKER_IMAGE:-rayproject/ray:2.9.0}"
 
 header() {
   printf '\n========== %s ==========\n' "$1"
@@ -53,7 +55,7 @@ kubectl logs distalgo-gpu-smoke
 
 header "apply gpu raycluster"
 kubectl delete raycluster distalgo-gpu --ignore-not-found=true >/dev/null 2>&1 || true
-cat <<'YAML' | kubectl apply -f -
+cat <<YAML | kubectl apply -f -
 apiVersion: ray.io/v1
 kind: RayCluster
 metadata:
@@ -68,7 +70,7 @@ spec:
       spec:
         containers:
         - name: ray-head
-          image: rayproject/ray:2.9.0
+          image: ${RAY_IMAGE}
           imagePullPolicy: IfNotPresent
           ports:
           - containerPort: 6379
@@ -94,7 +96,7 @@ spec:
       spec:
         containers:
         - name: ray-worker
-          image: rayproject/ray-ml:2.9.0-gpu
+          image: ${RAY_GPU_WORKER_IMAGE}
           imagePullPolicy: IfNotPresent
           resources:
             requests:
@@ -112,7 +114,7 @@ kubectl get pods -l ray.io/cluster=distalgo-gpu -o wide
 
 header "ray fractional gpu scheduling smoke"
 HEAD_POD="$(kubectl get pod -l ray.io/cluster=distalgo-gpu,ray.io/node-type=head -o jsonpath='{.items[0].metadata.name}')"
-kubectl exec "$HEAD_POD" -- python - <<'PY'
+kubectl exec -i "$HEAD_POD" -- python - <<'PY'
 import json
 import os
 import ray

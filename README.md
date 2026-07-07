@@ -55,6 +55,7 @@ flowchart TB
     Ray --> KubeRay["KubeRay Operator"]
     KubeRay --> K8s["Kubernetes / K3s"]
     K8s --> GPU["NVIDIA GPU Plugin\ntime-sliced logical GPU slots"]
+    K8s --> Volcano["Optional Volcano vGPU\nQueue + Gang + HAMi-core"]
     K8s --> MinIO["MinIO / S3 artifacts"]
     K8s --> Prometheus["Prometheus / Grafana"]
 ```
@@ -167,6 +168,7 @@ Manifests and deployment helpers:
 - `deploy/docker-compose.yaml`
 - `deploy/kuberay/raycluster.yaml`
 - `deploy/kuberay/raycluster-gpu.yaml`
+- `deploy/volcano-vgpu/`
 - `deploy/kubernetes/distalgo-service.yaml`
 - `deploy/observability/prometheus-config.yaml`
 - `scripts/install_remote_kuberay.sh`
@@ -196,6 +198,9 @@ devices.
 
 See [GPU validation](docs/gpu-validation.md).
 
+For queue-level GPU quotas, gang scheduling, and vGPU memory/core limits, see
+[Volcano vGPU + HAMi GPU virtualization](docs/gpu-virtualization-volcano-hami.md).
+
 ---
 
 ## English Overview
@@ -221,6 +226,7 @@ src/distalgo/          Python package
 tests/                 Unit and framework-runtime tests
 examples/              Example job specs
 deploy/                Docker Compose, Kubernetes, KubeRay, Prometheus manifests
+deploy/volcano-vgpu/   Optional Volcano vGPU + HAMi-core validation manifests
 scripts/               Remote K3s/KubeRay/GPU helper scripts
 docs/                  Architecture, algorithm, GPU, and validation notes
 ```

@@ -12,10 +12,10 @@ env CUDA_VISIBLE_DEVICES=0 python3 scripts/probe_gpu.py
 docker compose -f deploy/docker-compose.yaml config
 ```
 
-Latest test result:
+Latest local test result:
 
 ```text
-45 tests passed, 1 socket-level HTTP smoke test skipped when sandbox denied TCP bind.
+47 tests passed, 1 socket-level HTTP smoke test skipped when sandbox denied TCP bind.
 ```
 
 The socket-level HTTP smoke test is environment-specific. The HTTP app route
@@ -69,10 +69,31 @@ The `distalgo-gpu-smoke` pod runs `nvidia-smi` through K3s with
 `nvidia.com/gpu: 1`, proving the device plugin, K3s containerd runtime, and CUDA
 container path.
 
-The repository now includes `scripts/remote_gpu_ray_smoke.sh` to extend this
-into a Ray-level GPU scheduling check. It creates a GPU RayCluster and runs
-fractional `num_gpus=0.25` Ray tasks. This is the next command to run on the
-remote host when image pulls are available.
+The repository includes `scripts/remote_gpu_ray_smoke.sh` for this full
+Ray-level GPU scheduling check.
+
+Validated KubeRay GPU RayCluster:
+
+```text
+RayCluster: default/distalgo-gpu, status ready
+Desired workers: 1
+Available workers: 1
+Ray resources: CPU 1500m, memory 5Gi, GPU 1
+Pods: head 1/1 Running, GPU worker 1/1 Running
+```
+
+Validated Ray fractional GPU task output:
+
+```text
+DISTALGO_RAY_GPU_RESULT=[
+  {"cuda_visible_devices": "0", "gpu_ids": [0], "index": 0},
+  {"cuda_visible_devices": "0", "gpu_ids": [0], "index": 1}
+]
+```
+
+This proves that Kubernetes GPU resources, KubeRay worker placement, Ray
+cluster membership, and Ray fractional GPU assignment work on the remote RTX
+5090 test host.
 
 ## Remote RayCluster Execution
 
@@ -93,8 +114,8 @@ jobs.
 ## Remaining External Validation
 
 - Run MinIO service integration instead of the in-memory MinIO-compatible client.
-- Run `scripts/remote_gpu_ray_smoke.sh` end-to-end and record the Ray GPU task
-  output in this report.
+- Install and validate the optional Volcano vGPU + HAMi-core profile if queue,
+  gang scheduling, and per-container vGPU memory/core limits become required.
 - Validate RAPIDS/cuGraph/cuML kernels after adding GPU implementations.
 - Validate NCCL/UCX only on a host with multiple physical CUDA devices.
 - Run large-graph performance and stress tests.

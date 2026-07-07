@@ -1,0 +1,36 @@
+apiVersion: batch.volcano.sh/v1alpha1
+kind: Job
+metadata:
+  name: distalgo-vgpu-gang
+  namespace: volcano-demo
+spec:
+  schedulerName: volcano
+  queue: gpu-small-queue
+  minAvailable: 2
+  maxRetry: 1
+  tasks:
+  - name: vgpu-worker
+    replicas: 2
+    policies:
+    - event: TaskCompleted
+      action: CompleteJob
+    template:
+      spec:
+        restartPolicy: Never
+        containers:
+        - name: cuda
+          image: nvidia/cuda:12.4.1-base-ubuntu22.04
+          imagePullPolicy: IfNotPresent
+          command:
+          - bash
+          - -lc
+          - |
+            echo "worker: $(hostname)"
+            env | grep -E 'CUDA|NVIDIA|VGPU|VOLCANO' || true
+            nvidia-smi
+            sleep 60
+          resources:
+            limits:
+              volcano.sh/vgpu-number: 1
+              volcano.sh/vgpu-memory: 1000
+              volcano.sh/vgpu-cores: 30
